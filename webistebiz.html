@@ -1,0 +1,1173 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Professional Business Dashboard</title>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        primary: '#2563eb',
+                        secondary: '#1d4ed8',
+                        dark: '#0f172a',
+                        accent: '#3b82f6',
+                        light: '#f8fafc',
+                        surface: '#e2e8f0'
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #f1f5f9;
+        }
+        
+        .sidebar {
+            transition: all 0.3s ease;
+            background: linear-gradient(180deg, #0f172a 0%, #1e293b 100%);
+        }
+        
+        .card {
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+            border: 1px solid #e2e8f0;
+        }
+        
+        .card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+        }
+        
+        .login-container {
+            background: linear-gradient(135deg, #2563eb 0%, #1e40af 100%);
+        }
+        
+        .tab-content {
+            animation: fadeIn 0.4s ease;
+        }
+        
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(10px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+        
+        .nav-item.active {
+            background: rgba(37, 99, 235, 0.2);
+            border-left: 3px solid #2563eb;
+        }
+        
+        .nav-item.active i {
+            color: #2563eb;
+        }
+        
+        .form-control:focus {
+            box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.2);
+        }
+        
+        .task-item {
+            transition: all 0.3s ease;
+        }
+        
+        .task-item:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
+        }
+        
+        .dragging {
+            opacity: 0.7;
+            transform: scale(1.02);
+        }
+        
+        .drag-over {
+            background-color: rgba(59, 130, 246, 0.1);
+        }
+        
+        .data-table th {
+            background-color: #f3f4f6;
+        }
+        
+        .data-table tr:nth-child(even) {
+            background-color: #f9fafb;
+        }
+        
+        .data-table tr:hover {
+            background-color: #f0f9ff;
+        }
+    </style>
+</head>
+
+<body class="bg-gray-100">
+    <!-- Login Page -->
+    <div class="login-container min-h-screen flex items-center justify-center p-4" id="login-page">
+        <div class="bg-white rounded-2xl shadow-xl p-8 w-full max-w-md">
+            <div class="text-center mb-10">
+                <div class="mx-auto bg-blue-100 w-16 h-16 rounded-full flex items-center justify-center mb-4">
+                    <i class="fas fa-building text-blue-600 text-2xl"></i>
+                </div>
+                <h1 class="text-3xl font-bold text-gray-800">Business Dashboard</h1>
+                <p class="text-gray-600 mt-2">Sign in to your account</p>
+            </div>
+
+            <div class="space-y-6">
+                <div>
+                    <label class="block text-gray-700 font-medium mb-2" for="employee-id">Employee ID</label>
+                    <div class="relative">
+                        <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                            <i class="far fa-user text-gray-400"></i>
+                        </div>
+                        <input type="text" id="employee-id" class="w-full pl-10 pr-3 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 form-control" placeholder="Enter your employee ID">
+                    </div>
+                    <div class="text-red-500 text-sm mt-1 hidden" id="id-error">Please enter your employee ID</div>
+                </div>
+
+                <div>
+                    <label class="block text-gray-700 font-medium mb-2" for="password">Password</label>
+                    <div class="relative">
+                        <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                            <i class="fas fa-lock text-gray-400"></i>
+                        </div>
+                        <input type="password" id="password" class="w-full pl-10 pr-3 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 form-control" placeholder="Enter your password">
+                    </div>
+                    <div class="text-red-500 text-sm mt-1 hidden" id="password-error">Please enter your password</div>
+                    <div class="text-red-500 text-sm mt-1 hidden" id="login-error">Invalid employee ID or password</div>
+                </div>
+
+                <div class="flex items-center justify-between">
+                    <div class="flex items-center">
+                        <input id="remember" type="checkbox" class="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded">
+                        <label for="remember" class="ml-2 block text-sm text-gray-700">Remember me</label>
+                    </div>
+                    <a href="#" class="text-sm text-blue-600 hover:text-blue-800">Forgot password?</a>
+                </div>
+
+                <button class="w-full bg-blue-600 hover:bg-blue-700 text-white font-medium py-3 rounded-lg transition duration-300 shadow-md" onclick="login()">
+                    Sign In
+                </button>
+            </div>
+
+            <div class="mt-8 text-center text-gray-600 text-sm">
+                <p>© 2023 Business Dashboard. All rights reserved.</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Dashboard -->
+    <div class="hidden" id="dashboard">
+        <div class="flex h-screen">
+            <!-- Sidebar -->
+            <div class="sidebar w-64 flex flex-col text-white">
+                <div class="p-6 border-b border-gray-700">
+                    <div class="flex items-center">
+                        <div class="bg-blue-500 w-10 h-10 rounded-lg flex items-center justify-center">
+                            <i class="fas fa-building text-white"></i>
+                        </div>
+                        <h2 class="text-xl font-bold ml-3">BusinessPro</h2>
+                    </div>
+                </div>
+
+                <div class="flex-1 overflow-y-auto py-4">
+                    <nav class="space-y-1 px-4">
+                        <a href="#" class="nav-item flex items-center px-4 py-3 text-gray-300 hover:bg-gray-800 rounded-lg group transition-all" onclick="switchTab('dashboard-home')">
+                            <i class="fas fa-home text-gray-400 group-hover:text-white mr-3"></i>
+                            <span>Dashboard</span>
+                        </a>
+                        <a href="#" class="nav-item flex items-center px-4 py-3 text-gray-300 hover:bg-gray-800 rounded-lg group transition-all" onclick="switchTab('new-data')">
+                            <i class="fas fa-plus-circle text-gray-400 group-hover:text-white mr-3"></i>
+                            <span>New Data</span>
+                        </a>
+                        <a href="#" class="nav-item flex items-center px-4 py-3 text-gray-300 hover:bg-gray-800 rounded-lg group transition-all" onclick="switchTab('daily-calls')">
+                            <i class="fas fa-phone-alt text-gray-400 group-hover:text-white mr-3"></i>
+                            <span>Daily Calls</span>
+                        </a>
+                        <a href="#" class="nav-item flex items-center px-4 py-3 text-gray-300 hover:bg-gray-800 rounded-lg group transition-all" onclick="switchTab('sales-report')">
+                            <i class="fas fa-chart-line text-gray-400 group-hover:text-white mr-3"></i>
+                            <span>Sales Report</span>
+                        </a>
+                        <a href="#" class="nav-item flex items-center px-4 py-3 text-gray-300 hover:bg-gray-800 rounded-lg group transition-all" onclick="switchTab('amc')">
+                            <i class="fas fa-calendar-check text-gray-400 group-hover:text-white mr-3"></i>
+                            <span>AMC</span>
+                        </a>
+                        <a href="#" class="nav-item flex items-center px-4 py-3 text-gray-300 hover:bg-gray-800 rounded-lg group transition-all" onclick="switchTab('task-board')">
+                            <i class="fas fa-tasks text-gray-400 group-hover:text-white mr-3"></i>
+                            <span>Task Board</span>
+                        </a>
+                        <a href="#" class="nav-item flex items-center px-4 py-3 text-gray-300 hover:bg-gray-800 rounded-lg group transition-all" onclick="switchTab('data-view')">
+                            <i class="fas fa-database text-gray-400 group-hover:text-white mr-3"></i>
+                            <span>View Data</span>
+                        </a>
+                    </nav>
+                </div>
+
+                <div class="p-4 border-t border-gray-700">
+                    <a href="#" class="flex items-center px-4 py-3 text-gray-300 hover:bg-red-900 rounded-lg group transition-all" onclick="logout()">
+                        <i class="fas fa-sign-out-alt text-gray-400 group-hover:text-red-400 mr-3"></i>
+                        <span>Logout</span>
+                    </a>
+                </div>
+            </div>
+
+            <!-- Main Content -->
+            <div class="flex-1 overflow-y-auto bg-gray-50">
+                <!-- Top Bar -->
+                <div class="bg-white shadow-sm">
+                    <div class="flex justify-between items-center px-6 py-4">
+                        <div>
+                            <h1 class="text-xl font-bold text-gray-800" id="current-tab">Dashboard</h1>
+                        </div>
+                        <div class="flex items-center space-x-4">
+                            <div class="relative">
+                                <button class="text-gray-500 hover:text-gray-700">
+                                    <i class="far fa-bell text-xl"></i>
+                                    <span class="absolute top-0 right-0 bg-red-500 text-white text-xs rounded-full h-5 w-5 flex items-center justify-center">3</span>
+                                </button>
+                            </div>
+                            <div class="relative">
+                                <button class="flex items-center space-x-2 text-gray-700 group">
+                                    <div class="bg-blue-100 w-8 h-8 rounded-full flex items-center justify-center">
+                                        <span class="text-blue-800 font-medium">JD</span>
+                                    </div>
+                                    <span class="font-medium" id="user-name">John Doe</span>
+                                    <i class="fas fa-chevron-down text-xs text-gray-400 group-hover:text-gray-600"></i>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Content Area -->
+                <div class="p-6">
+                    <!-- Dashboard Home -->
+                    <div id="dashboard-home" class="tab-content">
+                        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-6">
+                            <div class="card bg-white rounded-xl p-6">
+                                <div class="flex justify-between">
+                                    <div>
+                                        <h3 class="text-gray-500 font-medium">Total Revenue</h3>
+                                        <p class="text-3xl font-bold mt-2">$24,569</p>
+                                    </div>
+                                    <div class="bg-green-100 w-12 h-12 rounded-lg flex items-center justify-center">
+                                        <i class="fas fa-dollar-sign text-green-600 text-xl"></i>
+                                    </div>
+                                </div>
+                                <div class="mt-4">
+                                    <div class="flex items-center text-green-600">
+                                        <i class="fas fa-arrow-up mr-1"></i>
+                                        <span class="text-sm font-medium">12.5% from last month</span>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="card bg-white rounded-xl p-6">
+                                <div class="flex justify-between">
+                                    <div>
+                                        <h3 class="text-gray-500 font-medium">New Clients</h3>
+                                        <p class="text-3xl font-bold mt-2">142</p>
+                                    </div>
+                                    <div class="bg-blue-100 w-12 h-12 rounded-lg flex items-center justify-center">
+                                        <i class="fas fa-users text-blue-600 text-xl"></i>
+                                    </div>
+                                </div>
+                                <div class="mt-4">
+                                    <div class="flex items-center text-green-600">
+                                        <i class="fas fa-arrow-up mr-1"></i>
+                                        <span class="text-sm font-medium">8.2% from last month</span>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="card bg-white rounded-xl p-6">
+                                <div class="flex justify-between">
+                                    <div>
+                                        <h3 class="text-gray-500 font-medium">Pending Tasks</h3>
+                                        <p class="text-3xl font-bold mt-2">17</p>
+                                    </div>
+                                    <div class="bg-yellow-100 w-12 h-12 rounded-lg flex items-center justify-center">
+                                        <i class="fas fa-tasks text-yellow-600 text-xl"></i>
+                                    </div>
+                                </div>
+                                <div class="mt-4">
+                                    <div class="flex items-center text-red-600">
+                                        <i class="fas fa-arrow-down mr-1"></i>
+                                        <span class="text-sm font-medium">3.1% from last month</span>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="card bg-white rounded-xl p-6">
+                                <div class="flex justify-between">
+                                    <div>
+                                        <h3 class="text-gray-500 font-medium">Conversion Rate</h3>
+                                        <p class="text-3xl font-bold mt-2">24.8%</p>
+                                    </div>
+                                    <div class="bg-purple-100 w-12 h-12 rounded-lg flex items-center justify-center">
+                                        <i class="fas fa-percentage text-purple-600 text-xl"></i>
+                                    </div>
+                                </div>
+                                <div class="mt-4">
+                                    <div class="flex items-center text-green-600">
+                                        <i class="fas fa-arrow-up mr-1"></i>
+                                        <span class="text-sm font-medium">4.7% from last month</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
+                            <div class="card bg-white rounded-xl p-6">
+                                <div class="flex justify-between items-center mb-6">
+                                    <h3 class="text-lg font-bold text-gray-800">Revenue Overview</h3>
+                                    <div>
+                                        <button class="text-sm text-blue-600 hover:text-blue-800">View Report</button>
+                                    </div>
+                                </div>
+                                <div class="bg-gray-50 h-80 rounded-lg p-4 flex items-center justify-center">
+                                    <p class="text-gray-500">Revenue chart visualization</p>
+                                </div>
+                            </div>
+
+                            <div class="card bg-white rounded-xl p-6">
+                                <div class="flex justify-between items-center mb-6">
+                                    <h3 class="text-lg font-bold text-gray-800">Recent Activity</h3>
+                                    <div>
+                                        <button class="text-sm text-blue-600 hover:text-blue-800">View All</button>
+                                    </div>
+                                </div>
+                                <div class="space-y-4">
+                                    <div class="flex items-start">
+                                        <div class="bg-green-100 w-10 h-10 rounded-full flex items-center justify-center flex-shrink-0">
+                                            <i class="fas fa-check-circle text-green-600"></i>
+                                        </div>
+                                        <div class="ml-4">
+                                            <h4 class="font-medium">New client added</h4>
+                                            <p class="text-gray-600 text-sm">John Smith from TechCorp</p>
+                                            <p class="text-gray-400 text-xs mt-1">2 hours ago</p>
+                                        </div>
+                                    </div>
+
+                                    <div class="flex items-start">
+                                        <div class="bg-blue-100 w-10 h-10 rounded-full flex items-center justify-center flex-shrink-0">
+                                            <i class="fas fa-file-invoice-dollar text-blue-600"></i>
+                                        </div>
+                                        <div class="ml-4">
+                                            <h4 class="font-medium">Invoice paid</h4>
+                                            <p class="text-gray-600 text-sm">Invoice #INV-0012 for $1,200</p>
+                                            <p class="text-gray-400 text-xs mt-1">5 hours ago</p>
+                                        </div>
+                                    </div>
+
+                                    <div class="flex items-start">
+                                        <div class="bg-yellow-100 w-10 h-10 rounded-full flex items-center justify-center flex-shrink-0">
+                                            <i class="fas fa-tasks text-yellow-600"></i>
+                                        </div>
+                                        <div class="ml-4">
+                                            <h4 class="font-medium">Task completed</h4>
+                                            <p class="text-gray-600 text-sm">Follow up with ABC Corporation</p>
+                                            <p class="text-gray-400 text-xs mt-1">Yesterday</p>
+                                        </div>
+                                    </div>
+
+                                    <div class="flex items-start">
+                                        <div class="bg-purple-100 w-10 h-10 rounded-full flex items-center justify-center flex-shrink-0">
+                                            <i class="fas fa-calendar-check text-purple-600"></i>
+                                        </div>
+                                        <div class="ml-4">
+                                            <h4 class="font-medium">Meeting scheduled</h4>
+                                            <p class="text-gray-600 text-sm">Product demo with XYZ Industries</p>
+                                            <p class="text-gray-400 text-xs mt-1">May 15, 2023</p>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- New Data Form -->
+                    <div id="new-data" class="tab-content hidden">
+                        <div class="card bg-white rounded-xl p-6">
+                            <h2 class="text-xl font-bold text-gray-800 mb-6">New Business Data</h2>
+
+                            <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+                                <div>
+                                    <label class="block text-gray-700 font-medium mb-2">Business Name</label>
+                                    <input type="text" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 form-control" placeholder="Enter business name">
+                                </div>
+
+                                <div>
+                                    <label class="block text-gray-700 font-medium mb-2">Owner</label>
+                                    <input type="text" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 form-control" placeholder="Enter owner name">
+                                </div>
+
+                                <div>
+                                    <label class="block text-gray-700 font-medium mb-2">Contact</label>
+                                    <input type="tel" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 form-control" placeholder="Enter contact number">
+                                </div>
+
+                                <div>
+                                    <label class="block text-gray-700 font-medium mb-2">City</label>
+                                    <input type="text" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 form-control" placeholder="Enter city">
+                                </div>
+
+                                <div>
+                                    <label class="block text-gray-700 font-medium mb-2">Category</label>
+                                    <select class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 form-control">
+                                        <option value="">Select Category</option>
+                                        <option value="Retail">Retail</option>
+                                        <option value="Service">Service</option>
+                                        <option value="Manufacturing">Manufacturing</option>
+                                        <option value="Technology">Technology</option>
+                                    </select>
+                                </div>
+
+                                <div>
+                                    <label class="block text-gray-700 font-medium mb-2">Product</label>
+                                    <input type="text" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 form-control" placeholder="Enter product">
+                                </div>
+
+                                <div>
+                                    <label class="block text-gray-700 font-medium mb-2">Amount (₹)</label>
+                                    <input type="number" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 form-control" placeholder="Enter amount">
+                                </div>
+
+                                <div>
+                                    <label class="block text-gray-700 font-medium mb-2">Response</label>
+                                    <select class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 form-control">
+                                        <option value="">Select Response</option>
+                                        <option value="Interested">Interested</option>
+                                        <option value="Not Interested">Not Interested</option>
+                                        <option value="Call Back">Call Back</option>
+                                    </select>
+                                </div>
+                            </div>
+
+                            <div class="mb-6">
+                                <label class="block text-gray-700 font-medium mb-2">Remark</label>
+                                <textarea class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 form-control" rows="3" placeholder="Enter remarks"></textarea>
+                            </div>
+
+                            <div class="flex justify-end space-x-4">
+                                <button class="px-6 py-2 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300 transition">Reset</button>
+                                <button class="px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition">Submit</button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Daily Calls Form -->
+                    <div id="daily-calls" class="tab-content hidden">
+                        <div class="card bg-white rounded-xl p-6">
+                            <h2 class="text-xl font-bold text-gray-800 mb-6">Daily Call Records</h2>
+
+                            <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+                                <div>
+                                    <label class="block text-gray-700 font-medium mb-2">Call Date</label>
+                                    <input type="date" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 form-control">
+                                </div>
+
+                                <div>
+                                    <label class="block text-gray-700 font-medium mb-2">Business Name</label>
+                                    <input type="text" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 form-control" placeholder="Enter business name">
+                                </div>
+
+                                <div>
+                                    <label class="block text-gray-700 font-medium mb-2">Contact Person</label>
+                                    <input type="text" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 form-control" placeholder="Enter contact person">
+                                </div>
+
+                                <div>
+                                    <label class="block text-gray-700 font-medium mb-2">Contact Number</label>
+                                    <input type="tel" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 form-control" placeholder="Enter contact number">
+                                </div>
+
+                                <div>
+                                    <label class="block text-gray-700 font-medium mb-2">Call Duration</label>
+                                    <input type="text" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 form-control" placeholder="Enter duration (min)">
+                                </div>
+
+                                <div>
+                                    <label class="block text-gray-700 font-medium mb-2">Call Outcome</label>
+                                    <select class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 form-control">
+                                        <option value="">Select Outcome</option>
+                                        <option value="Positive">Positive</option>
+                                        <option value="Neutral">Neutral</option>
+                                        <option value="Negative">Negative</option>
+                                        <option value="Follow-up">Follow-up</option>
+                                    </select>
+                                </div>
+
+                                <div>
+                                    <label class="block text-gray-700 font-medium mb-2">Follow-up Date</label>
+                                    <input type="date" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 form-control">
+                                </div>
+
+                                <div>
+                                    <label class="block text-gray-700 font-medium mb-2">Call Taken By</label>
+                                    <input type="text" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 form-control" placeholder="Enter your name">
+                                </div>
+                            </div>
+
+                            <div class="mb-6">
+                                <label class="block text-gray-700 font-medium mb-2">Call Summary</label>
+                                <textarea class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 form-control" rows="3" placeholder="Enter call summary"></textarea>
+                            </div>
+
+                            <div class="flex justify-end space-x-4">
+                                <button class="px-6 py-2 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300 transition">Reset</button>
+                                <button class="px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition">Save Call</button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Sales Report Form -->
+                    <div id="sales-report" class="tab-content hidden">
+                        <div class="card bg-white rounded-xl p-6">
+                            <h2 class="text-xl font-bold text-gray-800 mb-6">Sales Report</h2>
+
+                            <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+                                <div>
+                                    <label class="block text-gray-700 font-medium mb-2">Report Period</label>
+                                    <select class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 form-control">
+                                        <option value="">Select Period</option>
+                                        <option value="daily">Daily</option>
+                                        <option value="weekly">Weekly</option>
+                                        <option value="monthly">Monthly</option>
+                                        <option value="quarterly">Quarterly</option>
+                                        <option value="yearly">Yearly</option>
+                                    </select>
+                                </div>
+
+                                <div>
+                                    <label class="block text-gray-700 font-medium mb-2">Date Range</label>
+                                    <div class="flex space-x-2">
+                                        <input type="date" class="flex-1 px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 form-control">
+                                        <span class="flex items-center">to</span>
+                                        <input type="date" class="flex-1 px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 form-control">
+                                    </div>
+                                </div>
+
+                                <div>
+                                    <label class="block text-gray-700 font-medium mb-2">Total Sales</label>
+                                    <input type="number" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 form-control" placeholder="Enter total sales">
+                                </div>
+
+                                <div>
+                                    <label class="block text-gray-700 font-medium mb-2">New Customers</label>
+                                    <input type="number" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 form-control" placeholder="Enter number">
+                                </div>
+
+                                <div>
+                                    <label class="block text-gray-700 font-medium mb-2">Top Product</label>
+                                    <input type="text" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 form-control" placeholder="Enter product name">
+                                </div>
+
+                                <div>
+                                    <label class="block text-gray-700 font-medium mb-2">Conversion Rate</label>
+                                    <input type="text" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 form-control" placeholder="Enter rate">
+                                </div>
+
+                                <div>
+                                    <label class="block text-gray-700 font-medium mb-2">Sales Representative</label>
+                                    <input type="text" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 form-control" placeholder="Enter name">
+                                </div>
+
+                                <div>
+                                    <label class="block text-gray-700 font-medium mb-2">Region</label>
+                                    <select class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 form-control">
+                                        <option value="">Select Region</option>
+                                        <option value="north">North</option>
+                                        <option value="south">South</option>
+                                        <option value="east">East</option>
+                                        <option value="west">West</option>
+                                    </select>
+                                </div>
+                            </div>
+
+                            <div class="mb-6">
+                                <label class="block text-gray-700 font-medium mb-2">Analysis & Notes</label>
+                                <textarea class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 form-control" rows="4" placeholder="Enter analysis and notes"></textarea>
+                            </div>
+
+                            <div class="flex justify-end space-x-4">
+                                <button class="px-6 py-2 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300 transition">Reset</button>
+                                <button class="px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition">Generate Report</button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- AMC Form -->
+                    <div id="amc" class="tab-content hidden">
+                        <div class="card bg-white rounded-xl p-6">
+                            <h2 class="text-xl font-bold text-gray-800 mb-6">AMC (Annual Maintenance Contract)</h2>
+
+                            <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+                                <div>
+                                    <label class="block text-gray-700 font-medium mb-2">Client Name</label>
+                                    <input type="text" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 form-control" placeholder="Enter client name">
+                                </div>
+
+                                <div>
+                                    <label class="block text-gray-700 font-medium mb-2">Contract ID</label>
+                                    <input type="text" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 form-control" placeholder="Enter contract ID">
+                                </div>
+
+                                <div>
+                                    <label class="block text-gray-700 font-medium mb-2">Start Date</label>
+                                    <input type="date" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 form-control">
+                                </div>
+
+                                <div>
+                                    <label class="block text-gray-700 font-medium mb-2">End Date</label>
+                                    <input type="date" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 form-control">
+                                </div>
+
+                                <div>
+                                    <label class="block text-gray-700 font-medium mb-2">Contract Value</label>
+                                    <input type="number" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 form-control" placeholder="Enter value">
+                                </div>
+
+                                <div>
+                                    <label class="block text-gray-700 font-medium mb-2">Payment Status</label>
+                                    <select class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 form-control">
+                                        <option value="">Select Status</option>
+                                        <option value="paid">Paid</option>
+                                        <option value="pending">Pending</option>
+                                        <option value="partial">Partial</option>
+                                    </select>
+                                </div>
+
+                                <div>
+                                    <label class="block text-gray-700 font-medium mb-2">Renewal Date</label>
+                                    <input type="date" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 form-control">
+                                </div>
+
+                                <div>
+                                    <label class="block text-gray-700 font-medium mb-2">Account Manager</label>
+                                    <input type="text" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 form-control" placeholder="Enter manager name">
+                                </div>
+                            </div>
+
+                            <div class="mb-6">
+                                <label class="block text-gray-700 font-medium mb-2">Services Included</label>
+                                <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3">
+                                    <div class="flex items-center">
+                                        <input type="checkbox" class="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded">
+                                        <label class="ml-2 text-gray-700">Hardware Maintenance</label>
+                                    </div>
+                                    <div class="flex items-center">
+                                        <input type="checkbox" class="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded">
+                                        <label class="ml-2 text-gray-700">Software Updates</label>
+                                    </div>
+                                    <div class="flex items-center">
+                                        <input type="checkbox" class="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded">
+                                        <label class="ml-2 text-gray-700">24/7 Support</label>
+                                    </div>
+                                    <div class="flex items-center">
+                                        <input type="checkbox" class="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded">
+                                        <label class="ml-2 text-gray-700">On-site Visits</label>
+                                    </div>
+                                    <div class="flex items-center">
+                                        <input type="checkbox" class="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded">
+                                        <label class="ml-2 text-gray-700">Remote Assistance</label>
+                                    </div>
+                                    <div class="flex items-center">
+                                        <input type="checkbox" class="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded">
+                                        <label class="ml-2 text-gray-700">Training Sessions</label>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="flex justify-end space-x-4">
+                                <button class="px-6 py-2 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300 transition">Reset</button>
+                                <button class="px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition">Save Contract</button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Task Board -->
+                    <div id="task-board" class="tab-content hidden">
+                        <div class="card bg-white rounded-xl p-6">
+                            <h2 class="text-xl font-bold text-gray-800 mb-6">Task Management Board</h2>
+
+                            <div class="mb-6">
+                                <div class="flex flex-col md:flex-row gap-3">
+                                    <input type="text" id="new-task-input" class="flex-grow px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500" placeholder="Enter new task">
+                                    <button class="px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition flex items-center" onclick="addTask()">
+                                        <i class="fas fa-plus mr-2"></i> Add Task
+                                    </button>
+                                </div>
+                            </div>
+
+                            <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                                <!-- To Do Column -->
+                                <div class="bg-gray-50 rounded-xl p-4">
+                                    <div class="flex justify-between items-center mb-4 pb-2 border-b border-gray-300">
+                                        <h3 class="font-semibold text-gray-800">To Do</h3>
+                                        <span class="bg-gray-500 text-white rounded-full w-6 h-6 flex items-center justify-center text-xs" id="todo-count">3</span>
+                                    </div>
+                                    <div class="space-y-3 min-h-[200px]" id="todo-list" ondrop="drop(event)" ondragover="allowDrop(event)">
+                                        <div class="task-item bg-white p-4 rounded-lg shadow cursor-move border-l-4 border-blue-500" draggable="true" ondragstart="dragStart(event)" id="task-1">
+                                            <div class="flex justify-between">
+                                                <div>Prepare quarterly sales report</div>
+                                                <button class="text-gray-400 hover:text-red-500" onclick="deleteTask('task-1')">
+                                                    <i class="fas fa-trash"></i>
+                                                </button>
+                                            </div>
+                                            <div class="text-xs text-gray-500 mt-2">Due: Tomorrow</div>
+                                        </div>
+                                        <div class="task-item bg-white p-4 rounded-lg shadow cursor-move border-l-4 border-blue-500" draggable="true" ondragstart="dragStart(event)" id="task-2">
+                                            <div class="flex justify-between">
+                                                <div>Call client for contract renewal</div>
+                                                <button class="text-gray-400 hover:text-red-500" onclick="deleteTask('task-2')">
+                                                    <i class="fas fa-trash"></i>
+                                                </button>
+                                            </div>
+                                            <div class="text-xs text-gray-500 mt-2">Due: Today</div>
+                                        </div>
+                                        <div class="task-item bg-white p-4 rounded-lg shadow cursor-move border-l-4 border-blue-500" draggable="true" ondragstart="dragStart(event)" id="task-3">
+                                            <div class="flex justify-between">
+                                                <div>Schedule team meeting</div>
+                                                <button class="text-gray-400 hover:text-red-500" onclick="deleteTask('task-3')">
+                                                    <i class="fas fa-trash"></i>
+                                                </button>
+                                            </div>
+                                            <div class="text-xs text-gray-500 mt-2">Due: This week</div>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <!-- In Progress Column -->
+                                <div class="bg-gray-50 rounded-xl p-4">
+                                    <div class="flex justify-between items-center mb-4 pb-2 border-b border-gray-300">
+                                        <h3 class="font-semibold text-gray-800">In Progress</h3>
+                                        <span class="bg-yellow-500 text-white rounded-full w-6 h-6 flex items-center justify-center text-xs" id="in-progress-count">2</span>
+                                    </div>
+                                    <div class="space-y-3 min-h-[200px]" id="in-progress-list" ondrop="drop(event)" ondragover="allowDrop(event)">
+                                        <div class="task-item bg-white p-4 rounded-lg shadow cursor-move border-l-4 border-yellow-500" draggable="true" ondragstart="dragStart(event)" id="task-4">
+                                            <div class="flex justify-between">
+                                                <div>Develop new marketing strategy</div>
+                                                <button class="text-gray-400 hover:text-red-500" onclick="deleteTask('task-4')">
+                                                    <i class="fas fa-trash"></i>
+                                                </button>
+                                            </div>
+                                            <div class="text-xs text-gray-500 mt-2">Due: Next week</div>
+                                        </div>
+                                        <div class="task-item bg-white p-4 rounded-lg shadow cursor-move border-l-4 border-yellow-500" draggable="true" ondragstart="dragStart(event)" id="task-5">
+                                            <div class="flex justify-between">
+                                                <div>Update client database</div>
+                                                <button class="text-gray-400 hover:text-red-500" onclick="deleteTask('task-5')">
+                                                    <i class="fas fa-trash"></i>
+                                                </button>
+                                            </div>
+                                            <div class="text-xs text-gray-500 mt-2">Due: Tomorrow</div>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <!-- Done Column -->
+                                <div class="bg-gray-50 rounded-xl p-4">
+                                    <div class="flex justify-between items-center mb-4 pb-2 border-b border-gray-300">
+                                        <h3 class="font-semibold text-gray-800">Done</h3>
+                                        <span class="bg-green-500 text-white rounded-full w-6 h-6 flex items-center justify-center text-xs" id="done-count">1</span>
+                                    </div>
+                                    <div class="space-y-3 min-h-[200px]" id="done-list" ondrop="drop(event)" ondragover="allowDrop(event)">
+                                        <div class="task-item bg-white p-4 rounded-lg shadow cursor-move border-l-4 border-green-500" draggable="true" ondragstart="dragStart(event)" id="task-6">
+                                            <div class="flex justify-between">
+                                                <div>Complete team meeting presentation</div>
+                                                <button class="text-gray-400 hover:text-red-500" onclick="deleteTask('task-6')">
+                                                    <i class="fas fa-trash"></i>
+                                                </button>
+                                            </div>
+                                            <div class="text-xs text-gray-500 mt-2">Completed: Today</div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- View Data -->
+                    <div id="data-view" class="tab-content hidden">
+                        <div class="card bg-white rounded-xl p-6">
+                            <h2 class="text-xl font-bold text-gray-800 mb-6">Business Data Overview</h2>
+
+                            <div class="flex justify-between items-center mb-6">
+                                <div class="flex space-x-2">
+                                    <input type="text" id="data-search" class="px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500" placeholder="Search..." onkeyup="filterData()">
+                                    <select class="px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500" id="data-category" onchange="filterData()">
+                                        <option value="">All Categories</option>
+                                        <option>Retail</option>
+                                        <option>Service</option>
+                                        <option>Manufacturing</option>
+                                        <option>Technology</option>
+                                    </select>
+                                    <select class="px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500" id="data-status" onchange="filterData()">
+                                        <option value="">All Statuses</option>
+                                        <option>Active</option>
+                                        <option>Pending</option>
+                                        <option>Inactive</option>
+                                    </select>
+                                </div>
+                                <div>
+                                    <button class="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition">
+                                        <i class="fas fa-download mr-2"></i> Export
+                                    </button>
+                                </div>
+                            </div>
+
+                            <div class="overflow-x-auto">
+                                <table class="w-full text-sm data-table">
+                                    <thead>
+                                        <tr class="bg-gray-100 text-gray-700">
+                                            <th class="p-3 text-left">Business</th>
+                                            <th class="p-3 text-left">Owner</th>
+                                            <th class="p-3 text-left">Category</th>
+                                            <th class="p-3 text-left">Contact</th>
+                                            <th class="p-3 text-left">City</th>
+                                            <th class="p-3 text-left">Revenue</th>
+                                            <th class="p-3 text-left">Status</th>
+                                            <th class="p-3 text-left">Actions</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="data-table-body">
+                                        <tr class="border-b border-gray-200">
+                                            <td class="p-3">Tech Solutions Inc</td>
+                                            <td class="p-3">John Smith</td>
+                                            <td class="p-3">Technology</td>
+                                            <td class="p-3">john@techsolutions.com</td>
+                                            <td class="p-3">New York</td>
+                                            <td class="p-3">$125,000</td>
+                                            <td class="p-3"><span class="px-2 py-1 bg-green-100 text-green-800 rounded-full text-xs">Active</span></td>
+                                            <td class="p-3">
+                                                <button class="text-blue-600 hover:text-blue-800 mr-2" onclick="editData('1')">
+                                                    <i class="fas fa-edit"></i>
+                                                </button>
+                                                <button class="text-red-600 hover:text-red-800" onclick="deleteData('1')">
+                                                    <i class="fas fa-trash"></i>
+                                                </button>
+                                            </td>
+                                        </tr>
+                                        <tr class="border-b border-gray-200">
+                                            <td class="p-3">Retail Ventures</td>
+                                            <td class="p-3">Sarah Johnson</td>
+                                            <td class="p-3">Retail</td>
+                                            <td class="p-3">sarah@retailventures.com</td>
+                                            <td class="p-3">Chicago</td>
+                                            <td class="p-3">$89,500</td>
+                                            <td class="p-3"><span class="px-2 py-1 bg-green-100 text-green-800 rounded-full text-xs">Active</span></td>
+                                            <td class="p-3">
+                                                <button class="text-blue-600 hover:text-blue-800 mr-2" onclick="editData('2')">
+                                                    <i class="fas fa-edit"></i>
+                                                </button>
+                                                <button class="text-red-600 hover:text-red-800" onclick="deleteData('2')">
+                                                    <i class="fas fa-trash"></i>
+                                                </button>
+                                            </td>
+                                        </tr>
+                                        <tr class="border-b border-gray-200">
+                                            <td class="p-3">Manufacturing Pros</td>
+                                            <td class="p-3">Michael Brown</td>
+                                            <td class="p-3">Manufacturing</td>
+                                            <td class="p-3">michael@manufacturingpros.com</td>
+                                            <td class="p-3">Detroit</td>
+                                            <td class="p-3">$210,000</td>
+                                            <td class="p-3"><span class="px-2 py-1 bg-yellow-100 text-yellow-800 rounded-full text-xs">Pending</span></td>
+                                            <td class="p-3">
+                                                <button class="text-blue-600 hover:text-blue-800 mr-2" onclick="editData('3')">
+                                                    <i class="fas fa-edit"></i>
+                                                </button>
+                                                <button class="text-red-600 hover:text-red-800" onclick="deleteData('3')">
+                                                    <i class="fas fa-trash"></i>
+                                                </button>
+                                            </td>
+                                        </tr>
+                                        <tr class="border-b border-gray-200">
+                                            <td class="p-3">Service Masters</td>
+                                            <td class="p-3">Emily Davis</td>
+                                            <td class="p-3">Service</td>
+                                            <td class="p-3">emily@servicemasters.com</td>
+                                            <td class="p-3">Los Angeles</td>
+                                            <td class="p-3">$156,750</td>
+                                            <td class="p-3"><span class="px-2 py-1 bg-green-100 text-green-800 rounded-full text-xs">Active</span></td>
+                                            <td class="p-3">
+                                                <button class="text-blue-600 hover:text-blue-800 mr-2" onclick="editData('4')">
+                                                    <i class="fas fa-edit"></i>
+                                                </button>
+                                                <button class="text-red-600 hover:text-red-800" onclick="deleteData('4')">
+                                                    <i class="fas fa-trash"></i>
+                                                </button>
+                                            </td>
+                                        </tr>
+                                        <tr>
+                                            <td class="p-3">Digital Innovators</td>
+                                            <td class="p-3">David Wilson</td>
+                                            <td class="p-3">Technology</td>
+                                            <td class="p-3">david@digitalinnovators.com</td>
+                                            <td class="p-3">San Francisco</td>
+                                            <td class="p-3">$98,300</td>
+                                            <td class="p-3"><span class="px-2 py-1 bg-red-100 text-red-800 rounded-full text-xs">Inactive</span></td>
+                                            <td class="p-3">
+                                                <button class="text-blue-600 hover:text-blue-800 mr-2" onclick="editData('5')">
+                                                    <i class="fas fa-edit"></i>
+                                                </button>
+                                                <button class="text-red-600 hover:text-red-800" onclick="deleteData('5')">
+                                                    <i class="fas fa-trash"></i>
+                                                </button>
+                                            </td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+
+                            <div class="mt-6 flex justify-between items-center">
+                                <div class="text-gray-600">
+                                    Showing 1 to 5 of 25 entries
+                                </div>
+                                <div class="flex space-x-2">
+                                    <button class="px-3 py-1 border border-gray-300 rounded hover:bg-gray-100">&laquo;</button>
+                                    <button class="px-3 py-1 bg-blue-600 text-white rounded">1</button>
+                                    <button class="px-3 py-1 border border-gray-300 rounded hover:bg-gray-100">2</button>
+                                    <button class="px-3 py-1 border border-gray-300 rounded hover:bg-gray-100">3</button>
+                                    <button class="px-3 py-1 border border-gray-300 rounded hover:bg-gray-100">&raquo;</button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Valid credentials (for demo purposes)
+        const validCredentials = {
+            'EMP001': {
+                password: 'password1',
+                name: 'sayali sagar'
+            },
+            'EMP002': {
+                password: 'password2',
+                name: 'Sarah Johnson'
+            },
+            'EMP003': {
+                password: 'password3',
+                name: 'Michael Chen'
+            }
+        };
+
+        // Initialize the app
+        document.addEventListener('DOMContentLoaded', function() {
+            // Hide all error messages initially
+            document.getElementById('id-error').style.display = 'none';
+            document.getElementById('password-error').style.display = 'none';
+            document.getElementById('login-error').style.display = 'none';
+
+            // Set default active tab
+            document.querySelector('.nav-item').classList.add('active');
+        });
+
+        // Login function
+        function login() {
+            const employeeId = document.getElementById('employee-id').value.trim();
+            const password = document.getElementById('password').value.trim();
+
+            // Reset error messages
+            document.getElementById('id-error').style.display = 'none';
+            document.getElementById('password-error').style.display = 'none';
+            document.getElementById('login-error').style.display = 'none';
+
+            // Validate inputs
+            let isValid = true;
+
+            if (!employeeId) {
+                document.getElementById('id-error').style.display = 'block';
+                isValid = false;
+            }
+
+            if (!password) {
+                document.getElementById('password-error').style.display = 'block';
+                isValid = false;
+            }
+
+            if (!isValid) return;
+
+            // Check credentials
+            if (validCredentials[employeeId] && validCredentials[employeeId].password === password) {
+                // Hide login page and show dashboard
+                document.getElementById('login-page').style.display = 'none';
+                document.getElementById('dashboard').style.display = 'flex';
+
+                // Set user name
+                document.getElementById('user-name').textContent = validCredentials[employeeId].name;
+            } else {
+                document.getElementById('login-error').style.display = 'block';
+            }
+        }
+
+        // Logout function
+        function logout() {
+            document.getElementById('employee-id').value = '';
+            document.getElementById('password').value = '';
+            document.getElementById('login-page').style.display = 'flex';
+            document.getElementById('dashboard').style.display = 'none';
+
+            // Hide error messages
+            document.getElementById('id-error').style.display = 'none';
+            document.getElementById('password-error').style.display = 'none';
+            document.getElementById('login-error').style.display = 'none';
+        }
+
+        // Tab switching
+        function switchTab(tabId) {
+            // Hide all tab contents
+            document.querySelectorAll('.tab-content').forEach(tab => {
+                tab.style.display = 'none';
+            });
+
+            // Show selected tab content
+            document.getElementById(tabId).style.display = 'block';
+
+            // Set current tab title
+            const tabTitle = document.querySelector(`.nav-item[onclick="switchTab('${tabId}')"] span`).textContent;
+            document.getElementById('current-tab').textContent = tabTitle;
+
+            // Remove active class from all nav items
+            document.querySelectorAll('.nav-item').forEach(item => {
+                item.classList.remove('active');
+            });
+
+            // Add active class to clicked nav item
+            event.currentTarget.classList.add('active');
+        }
+
+        // Add new task
+        function addTask() {
+            const taskInput = document.getElementById('new-task-input');
+            const taskText = taskInput.value.trim();
+
+            if (taskText) {
+                const todoList = document.getElementById('todo-list');
+                const taskId = 'task-' + Date.now();
+
+                const taskElement = document.createElement('div');
+                taskElement.className = 'task-item bg-white p-4 rounded-lg shadow cursor-move border-l-4 border-blue-500';
+                taskElement.draggable = true;
+                taskElement.id = taskId;
+                taskElement.setAttribute('ondragstart', 'dragStart(event)');
+                taskElement.innerHTML = `
+                    <div class="flex justify-between">
+                        <div>${taskText}</div>
+                        <button class="text-gray-400 hover:text-red-500" onclick="deleteTask('${taskId}')">
+                            <i class="fas fa-trash"></i>
+                        </button>
+                    </div>
+                    <div class="text-xs text-gray-500 mt-2">Due: ${new Date().toLocaleDateString()}</div>
+                `;
+
+                todoList.appendChild(taskElement);
+                taskInput.value = '';
+
+                updateTaskCounts();
+            }
+        }
+
+        // Delete task
+        function deleteTask(taskId) {
+            const taskElement = document.getElementById(taskId);
+            if (taskElement) {
+                taskElement.remove();
+                updateTaskCounts();
+            }
+        }
+
+        // Update task counts
+        function updateTaskCounts() {
+            document.getElementById('todo-count').textContent = document.getElementById('todo-list').children.length;
+            document.getElementById('in-progress-count').textContent = document.getElementById('in-progress-list').children.length;
+            document.getElementById('done-count').textContent = document.getElementById('done-list').children.length;
+        }
+
+        // Drag and drop functions
+        let draggedElement = null;
+
+        function dragStart(event) {
+            draggedElement = event.target;
+            event.dataTransfer.setData('text/plain', event.target.id);
+            event.target.classList.add('dragging');
+        }
+
+        function allowDrop(event) {
+            event.preventDefault();
+            event.target.classList.add('drag-over');
+        }
+
+        function dragLeave(event) {
+            event.target.classList.remove('drag-over');
+        }
+
+        function drop(event) {
+            event.preventDefault();
+            event.target.classList.remove('drag-over');
+
+            if (draggedElement) {
+                const dropTarget = event.target.closest('[ondrop]');
+                if (dropTarget && dropTarget !== draggedElement.parentNode) {
+                    dropTarget.appendChild(draggedElement);
+                    updateTaskCounts();
+                }
+            }
+        }
+
+        // Data view functions
+        function filterData() {
+            const searchTerm = document.getElementById('data-search').value.toLowerCase();
+            const category = document.getElementById('data-category').value.toLowerCase();
+            const status = document.getElementById('data-status').value.toLowerCase();
+            const rows = document.querySelectorAll('#data-table-body tr');
+
+            rows.forEach(row => {
+                const business = row.cells[0].textContent.toLowerCase();
+                const owner = row.cells[1].textContent.toLowerCase();
+                const rowCategory = row.cells[2].textContent.toLowerCase();
+                const contact = row.cells[3].textContent.toLowerCase();
+                const city = row.cells[4].textContent.toLowerCase();
+                const rowStatus = row.cells[6].textContent.toLowerCase();
+
+                const matchesSearch = business.includes(searchTerm) || owner.includes(searchTerm) ||
+                    contact.includes(searchTerm) || city.includes(searchTerm);
+                const matchesCategory = category === '' || rowCategory.includes(category);
+                const matchesStatus = status === '' || rowStatus.includes(status);
+
+                if (matchesSearch && matchesCategory && matchesStatus) {
+                    row.style.display = '';
+                } else {
+                    row.style.display = 'none';
+                }
+            });
+        }
+
+        function editData(id) {
+            alert(`Editing data with ID: ${id}`);
+            // In a real application, this would open a modal with the data to edit
+        }
+
+        function deleteData(id) {
+            if (confirm('Are you sure you want to delete this record?')) {
+                alert(`Deleting data with ID: ${id}`);
+                // In a real application, this would remove the data from the table
+            }
+        }
+    </script>
+</body>
+
+</html>
