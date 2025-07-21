@@ -1,0 +1,604 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Bizonance Portal</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <style>
+    @keyframes fadeIn {
+      from { opacity: 0; }
+      to { opacity: 1; }
+    }
+    
+    .fade-in {
+      animation: fadeIn 0.5s ease;
+    }
+    
+    /* Custom scrollbar for the board */
+    .board::-webkit-scrollbar {
+      height: 8px;
+    }
+    
+    .board::-webkit-scrollbar-track {
+      background: #f1f1f1;
+      border-radius: 10px;
+    }
+    
+    .board::-webkit-scrollbar-thumb {
+      background: #00838f;
+      border-radius: 10px;
+    }
+    
+    /* For Firefox */
+    .board {
+      scrollbar-width: thin;
+      scrollbar-color: #00838f #f1f1f1;
+    }
+
+    /* Remove line-through when hovering delete button */
+    .task.completed:hover .delete-task-btn ~ span {
+      text-decoration: none;
+    }
+  </style>
+</head>
+<body class="bg-blue-50 font-sans antialiased m-0 overflow-x-hidden">
+
+<!-- Navigation Tabs -->
+<nav class="flex bg-teal-700 text-white p-3 sticky top-0 z-50">
+  <img src="bizonance-logo.png" alt="Bizonance Logo" class="h-10 w-10 mr-4 rounded-full bg-white p-1"/>
+
+  <div class="mr-5 cursor-pointer font-bold px-3 py-1 rounded transition-colors bg-white bg-opacity-30 underline" onclick="switchTab('task')">Tasks Board</div>
+  <div class="mr-5 cursor-pointer font-bold px-3 py-1 rounded transition-colors hover:bg-white hover:bg-opacity-20" onclick="switchTab('dashboard')">Dashboard</div>
+</nav>
+
+<!-- Task Board Tab -->
+<div class="tab-content fade-in p-5" id="task">
+  <h1 class="text-center uppercase text-teal-800 text-3xl font-bold mb-6">TASKS BOARD</h1>
+
+  <div class="board flex gap-4 p-3 overflow-x-auto scroll-smooth" id="board">
+    <!-- Lists will be loaded from localStorage -->
+  </div>
+</div>
+
+<!-- Dashboard Tab -->
+<div class="tab-content fade-in hidden p-5" id="dashboard">
+  <h1 class="text-center uppercase text-teal-800 text-3xl font-bold mb-6">DASHBOARD</h1>
+  
+  <div class="stats-container flex flex-wrap gap-5 justify-center mt-8">
+    <div class="stat-card bg-white rounded-lg p-5 w-48 text-center shadow-md">
+      <h3 class="text-teal-800 mt-0 font-semibold">Total Tasks</h3>
+      <div class="stat-value text-4xl font-bold text-teal-700 my-3" id="total-tasks">0</div>
+      <p class="text-gray-600 text-sm">Across all lists</p>
+    </div>
+    
+    <div class="stat-card bg-white rounded-lg p-5 w-48 text-center shadow-md">
+      <h3 class="text-teal-800 mt-0 font-semibold">Completed</h3>
+      <div class="stat-value text-4xl font-bold text-teal-700 my-3" id="completed-tasks">0</div>
+      <p class="text-gray-600 text-sm">Tasks marked done</p>
+    </div>
+    
+    <div class="stat-card bg-white rounded-lg p-5 w-48 text-center shadow-md">
+      <h3 class="text-teal-800 mt-0 font-semibold">Pending</h3>
+      <div class="stat-value text-4xl font-bold text-teal-700 my-3" id="pending-tasks">0</div>
+      <p class="text-gray-600 text-sm">Tasks to complete</p>
+    </div>
+    
+    <div class="stat-card bg-white rounded-lg p-5 w-48 text-center shadow-md">
+      <h3 class="text-teal-800 mt-0 font-semibold">Lists</h3>
+      <div class="stat-value text-4xl font-bold text-teal-700 my-3" id="total-lists">0</div>
+      <p class="text-gray-600 text-sm">Task categories</p>
+    </div>
+  </div>
+</div>
+
+<script>
+  // Data structure to store our tasks
+  let taskBoardData = {
+    lists: [],
+    changes: []
+  };
+
+  // Load data from localStorage when page loads
+  function loadData() {
+    const savedData = localStorage.getItem('taskBoardData');
+    if (savedData) {
+      taskBoardData = JSON.parse(savedData);
+    } else {
+      // Initialize with default data if nothing is saved
+      taskBoardData.lists = [
+        {
+          id: generateId(),
+          title: "To Do",
+          tasks: [
+            { id: generateId(), text: "Client Requirement Gathering", completed: false },
+            { id: generateId(), text: "Proposal Drafting", completed: false },
+            { id: generateId(), text: "Market Research", completed: false },
+            { id: generateId(), text: "Schedule Team Meeting", completed: false },
+            { id: generateId(), text: "Competitor Analysis", completed: false },
+            { id: generateId(), text: "Budget Planning", completed: false },
+            { id: generateId(), text: "Resource Allocation", completed: false }
+          ],
+          showCompleted: true,
+          showAddTask: false
+        },
+        {
+          id: generateId(),
+          title: "Pending Tasks",
+          tasks: [
+            { id: generateId(), text: "Client Feedback Review", completed: false },
+            { id: generateId(), text: "Budget Approval", completed: false },
+            { id: generateId(), text: "Vendor Quotation Comparison", completed: false },
+            { id: generateId(), text: "Legal Document Verification", completed: false },
+            { id: generateId(), text: "Stakeholder Sign-off", completed: false },
+            { id: generateId(), text: "Third-party Integration Approval", completed: false },
+            { id: generateId(), text: "Security Compliance Check", completed: false }
+          ],
+          showCompleted: true,
+          showAddTask: false
+        },
+        {
+          id: generateId(),
+          title: "AMC Tasks",
+          tasks: [
+            { id: generateId(), text: "Renewal Notice Preparation", completed: false },
+            { id: generateId(), text: "Client AMC Follow-up", completed: false },
+            { id: generateId(), text: "Service Scheduling", completed: false },
+            { id: generateId(), text: "AMC Payment Tracking", completed: false },
+            { id: generateId(), text: "Preventive Maintenance Planning", completed: false },
+            { id: generateId(), text: "AMC Contract Review", completed: false },
+            { id: generateId(), text: "Service Report Documentation", completed: false }
+          ],
+          showCompleted: true,
+          showAddTask: false
+        },
+        {
+          id: generateId(),
+          title: "Social Media",
+          tasks: [
+            { id: generateId(), text: "Content Calendar Creation", completed: false },
+            { id: generateId(), text: "Post Scheduling", completed: false },
+            { id: generateId(), text: "Engagement Analysis", completed: false },
+            { id: generateId(), text: "Ad Campaign Setup", completed: false },
+            { id: generateId(), text: "Hashtag Research", completed: false },
+            { id: generateId(), text: "Influencer Outreach", completed: false },
+            { id: generateId(), text: "Monthly Performance Report", completed: false }
+          ],
+          showCompleted: true,
+          showAddTask: false
+        },
+        {
+          id: generateId(),
+          title: "Doing",
+          tasks: [
+            { id: generateId(), text: "Develop login module", completed: false },
+            { id: generateId(), text: "Content Writing", completed: false },
+            { id: generateId(), text: "Client Meeting Preparation", completed: false },
+            { id: generateId(), text: "Bug Fixing", completed: false },
+            { id: generateId(), text: "Database Optimization", completed: false },
+            { id: generateId(), text: "API Integration", completed: false },
+            { id: generateId(), text: "UI/UX Improvements", completed: false }
+          ],
+          showCompleted: true,
+          showAddTask: false
+        },
+        {
+          id: generateId(),
+          title: "Done",
+          tasks: [
+            { id: generateId(), text: "UI design approved", completed: true },
+            { id: generateId(), text: "Domain Registration", completed: true },
+            { id: generateId(), text: "Social Media Setup", completed: true },
+            { id: generateId(), text: "Initial Client Onboarding", completed: true },
+            { id: generateId(), text: "Brand Identity Finalized", completed: true },
+            { id: generateId(), text: "Hosting Setup Completed", completed: true },
+            { id: generateId(), text: "Team Training Sessions", completed: true }
+          ],
+          showCompleted: true,
+          showAddTask: false
+        }
+      ];
+      
+      // Add initial changes to log
+      logChange('System', 'Initial load', 'Task board initialized with default data');
+      saveData();
+    }
+    
+    // Render the lists
+    renderLists();
+    updateDashboard();
+  }
+
+  // Save data to localStorage
+  function saveData() {
+    localStorage.setItem('taskBoardData', JSON.stringify(taskBoardData));
+  }
+
+  // Generate unique ID
+  function generateId() {
+    return Date.now().toString(36) + Math.random().toString(36).substr(2);
+  }
+
+  // Render all lists
+  function renderLists() {
+    const board = document.getElementById('board');
+    board.innerHTML = '';
+    
+    taskBoardData.lists.forEach(list => {
+      const listElement = document.createElement('div');
+      listElement.className = 'list bg-white rounded-xl p-4 w-72 flex-shrink-0 shadow-sm';
+      listElement.dataset.listId = list.id;
+      
+      // Separate completed and pending tasks
+      const pendingTasks = list.tasks.filter(task => !task.completed);
+      const completedTasks = list.tasks.filter(task => task.completed);
+      
+      let pendingTasksHtml = '';
+      pendingTasks.forEach(task => {
+        pendingTasksHtml += `
+          <div class="task bg-gray-50 p-3 my-2 rounded flex items-center gap-3 transition-all hover:-translate-y-0.5 hover:shadow-sm" data-task-id="${task.id}">
+            <input type="checkbox" onchange="toggleComplete(this)" class="rounded text-teal-600">
+            <span class="flex-1">${task.text}</span>
+          </div>
+        `;
+      });
+      
+      let completedTasksHtml = '';
+      completedTasks.forEach(task => {
+        completedTasksHtml += `
+          <div class="task completed bg-gray-200 text-gray-500 line-through p-3 my-2 rounded flex items-center gap-3" data-task-id="${task.id}">
+            <input type="checkbox" onchange="toggleComplete(this)" checked class="rounded text-teal-600">
+            <span class="flex-1">${task.text}</span>
+            <button onclick="deleteTask(this)" class="delete-task-btn text-red-500 hover:text-red-700">
+              🗑
+            </button>
+          </div>
+        `;
+      });
+      
+      // Only show completed section if there are completed tasks
+      const completedSection = completedTasks.length > 0 ? `
+        <!-- Completed Tasks Header -->
+        <div class="completed-header flex justify-between items-center mt-6 mb-2">
+          <h4 class="text-sm font-semibold text-teal-700">Completed (${completedTasks.length})</h4>
+          <button onclick="toggleCompletedTasks(this)" class="toggle-completed text-xs bg-gray-200 px-2 py-1 rounded">
+            ${list.showCompleted ? '\/' : '/\\'}
+          </button>
+        </div>
+        
+        <!-- Completed Tasks -->
+        <div class="completed-tasks ${list.showCompleted ? '' : 'hidden'}">
+          ${completedTasksHtml}
+        </div>
+      ` : '';
+      
+      listElement.innerHTML = `
+        <div class="list-header flex justify-between items-center mb-3">
+          <h3 onclick="editListTitle(this)" class="m-0 cursor-pointer text-teal-800 font-semibold">${list.title}</h3>
+          <button class="delete-btn bg-transparent border-none text-red-600 text-base cursor-pointer p-1" onclick="deleteList(this)">🗑</button>
+        </div>
+        
+        <!-- Add Task Button (shown by default) -->
+        <div class="add-task-button mb-4 ${list.showAddTask ? 'hidden' : ''}">
+          <button onclick="showAddTaskInput(this)" class="flex items-center w-full text-left text-gray-500 hover:text-teal-700 hover:bg-teal-50 p-2 rounded transition-colors">
+            <span class="bg-teal-600 text-white rounded-full w-5 h-5 flex items-center justify-center mr-2">+</span>
+            <span>Add a task</span>
+          </button>
+        </div>
+        
+        <!-- Add Task Input (hidden by default) -->
+        <div class="add-task-input ${list.showAddTask ? '' : 'hidden'} mb-4">
+          <div class="flex">
+            <input type="text" placeholder="New task..." class="task-input flex-1 p-2 rounded border border-gray-300 outline-none focus:border-teal-700">
+            <button onclick="addTask(this)" class="p-2 ml-2 border-none bg-teal-700 text-white rounded cursor-pointer transition-colors hover:bg-teal-900">Add</button>
+          </div>
+          <button onclick="hideAddTaskInput(this)" class="text-gray-500 hover:text-gray-700 mt-2 text-sm flex items-center">
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+            </svg>
+            Cancel
+          </button>
+        </div>
+        
+        <!-- Pending Tasks -->
+        <div class="pending-tasks">
+          ${pendingTasksHtml}
+        </div>
+        
+        ${completedSection}
+      `;
+      
+      board.appendChild(listElement);
+    });
+    
+    // Add the "Add New List" button
+    const addListBtn = document.createElement('div');
+    addListBtn.className = 'add-list bg-teal-700 bg-opacity-10 border-2 border-dashed border-teal-700 text-teal-700 p-4 text-center cursor-pointer min-w-[120px] font-bold rounded-xl flex items-center justify-center transition-all h-fit mt-4 flex-shrink-0 hover:bg-opacity-20';
+    addListBtn.textContent = '+ Add New List';
+    addListBtn.onclick = addNewList;
+    board.appendChild(addListBtn);
+  }
+
+  // Show the add task input field
+  function showAddTaskInput(button) {
+    const listElement = button.closest('.list');
+    const listId = listElement.dataset.listId;
+    
+    // Find the list in our data
+    const list = taskBoardData.lists.find(l => l.id === listId);
+    if (list) {
+      list.showAddTask = true;
+      saveData();
+      
+      // Update UI
+      const addTaskButton = listElement.querySelector('.add-task-button');
+      const addTaskInput = listElement.querySelector('.add-task-input');
+      
+      addTaskButton.classList.add('hidden');
+      addTaskInput.classList.remove('hidden');
+      
+      // Focus the input field
+      addTaskInput.querySelector('.task-input').focus();
+    }
+  }
+
+  // Hide the add task input field
+  function hideAddTaskInput(button) {
+    const listElement = button.closest('.list');
+    const listId = listElement.dataset.listId;
+    
+    // Find the list in our data
+    const list = taskBoardData.lists.find(l => l.id === listId);
+    if (list) {
+      list.showAddTask = false;
+      saveData();
+      
+      // Update UI
+      const addTaskButton = listElement.querySelector('.add-task-button');
+      const addTaskInput = listElement.querySelector('.add-task-input');
+      
+      addTaskButton.classList.remove('hidden');
+      addTaskInput.classList.add('hidden');
+      
+      // Clear the input field
+      addTaskInput.querySelector('.task-input').value = '';
+    }
+  }
+
+  // Task management functions
+  function addTask(button) {
+    const input = button.previousElementSibling;
+    const value = input.value.trim();
+    if (value) {
+      const listElement = button.closest('.list');
+      const listId = listElement.dataset.listId;
+      
+      // Find the list in our data
+      const list = taskBoardData.lists.find(l => l.id === listId);
+      if (list) {
+        const newTask = {
+          id: generateId(),
+          text: value,
+          completed: false
+        };
+        
+        // Add new task at the start of the pending tasks (top of the list)
+        list.tasks.unshift(newTask);
+        list.showAddTask = false; // Hide the input after adding
+        saveData();
+        
+        // Re-render the list to show the new task in the correct section
+        renderLists();
+        
+        // Log the change
+        logChange('Task added', value, list.title);
+        updateDashboard();
+      }
+    }
+  }
+
+  function toggleComplete(checkbox) {
+    const taskDiv = checkbox.parentElement;
+    const taskId = taskDiv.dataset.taskId;
+    const listElement = taskDiv.closest('.list');
+    const listId = listElement.dataset.listId;
+    
+    // Find the task in our data
+    const list = taskBoardData.lists.find(l => l.id === listId);
+    if (list) {
+      const task = list.tasks.find(t => t.id === taskId);
+      if (task) {
+        task.completed = !task.completed;
+        saveData();
+        
+        // Re-render the list to move the task between sections
+        renderLists();
+        
+        // Log the change
+        const action = task.completed ? 'Marked complete' : 'Marked incomplete';
+        const taskName = task.text;
+        const listName = list.title;
+        logChange(action, taskName, listName);
+        updateDashboard();
+      }
+    }
+  }
+
+  function deleteTask(button) {
+    const taskDiv = button.closest('.task');
+    const taskId = taskDiv.dataset.taskId;
+    const listElement = taskDiv.closest('.list');
+    const listId = listElement.dataset.listId;
+    
+    // Find the task in our data
+    const list = taskBoardData.lists.find(l => l.id === listId);
+    if (list) {
+      const taskIndex = list.tasks.findIndex(t => t.id === taskId);
+      if (taskIndex !== -1) {
+        const taskName = list.tasks[taskIndex].text;
+        if (confirm("Are you sure you want to delete this task?")) {
+          // Remove from data
+          list.tasks.splice(taskIndex, 1);
+          saveData();
+          
+          // Re-render the list
+          renderLists();
+          
+          // Log the change
+          logChange('Task deleted', taskName, list.title);
+          updateDashboard();
+        }
+      }
+    }
+  }
+
+  function toggleCompletedTasks(button) {
+    const listElement = button.closest('.list');
+    const listId = listElement.dataset.listId;
+    
+    // Find the list in our data
+    const list = taskBoardData.lists.find(l => l.id === listId);
+    if (list) {
+      // Toggle the showCompleted flag
+      list.showCompleted = !list.showCompleted;
+      saveData();
+      
+      // Update the button text
+      button.textContent = list.showCompleted ? '\/' : '/\\';
+      
+      // Toggle the completed tasks visibility
+      const completedTasksDiv = listElement.querySelector('.completed-tasks');
+      completedTasksDiv.classList.toggle('hidden');
+    }
+  }
+
+  function editListTitle(h3) {
+    const listElement = h3.closest('.list');
+    const listId = listElement.dataset.listId;
+    
+    // Find the list in our data
+    const list = taskBoardData.lists.find(l => l.id === listId);
+    if (list) {
+      const oldTitle = list.title;
+      const newTitle = prompt("Enter new list title:", oldTitle);
+      if (newTitle && newTitle !== oldTitle) {
+        // Update data
+        list.title = newTitle;
+        saveData();
+        
+        // Update UI
+        h3.textContent = newTitle;
+        
+        // Log the change
+        logChange('List renamed', oldTitle, newTitle);
+        updateDashboard();
+      }
+    }
+  }
+
+  function deleteList(button) {
+    const listElement = button.closest('.list');
+    const listId = listElement.dataset.listId;
+    
+    // Find the list in our data
+    const listIndex = taskBoardData.lists.findIndex(l => l.id === listId);
+    if (listIndex !== -1) {
+      const listName = taskBoardData.lists[listIndex].title;
+      if (confirm("Are you sure you want to delete this list and all its tasks?")) {
+        // Remove from data
+        taskBoardData.lists.splice(listIndex, 1);
+        saveData();
+        
+        // Remove from UI
+        listElement.remove();
+        
+        // Log the change
+        logChange('List deleted', listName, '');
+        updateDashboard();
+      }
+    }
+  }
+
+  function addNewList() {
+    const newList = {
+      id: generateId(),
+      title: "New List",
+      tasks: [],
+      showCompleted: true,
+      showAddTask: false
+    };
+    
+    // Add to data
+    taskBoardData.lists.push(newList);
+    saveData();
+    
+    // Re-render all lists to show the new one
+    renderLists();
+    
+    // Log the change
+    logChange('List added', newList.title, '');
+    updateDashboard();
+  }
+  
+  // Tab switching function
+  function switchTab(tabId) {
+    // Update active tab in navigation
+    document.querySelectorAll('nav div').forEach(tab => {
+      tab.classList.remove('bg-white', 'bg-opacity-30', 'underline');
+      tab.classList.add('hover:bg-white', 'hover:bg-opacity-20');
+    });
+    event.target.classList.add('bg-white', 'bg-opacity-30', 'underline');
+    event.target.classList.remove('hover:bg-white', 'hover:bg-opacity-20');
+    
+    // Show the selected tab content
+    document.querySelectorAll('.tab-content').forEach(content => {
+      content.classList.add('hidden');
+    });
+    document.getElementById(tabId).classList.remove('hidden');
+    document.getElementById(tabId).classList.add('fade-in');
+    
+    // Update dashboard stats when dashboard tab is opened
+    if (tabId === 'dashboard') {
+      updateDashboard();
+    }
+  }
+  
+  // Dashboard update function
+  function updateDashboard() {
+    let totalTasks = 0;
+    let completedTasks = 0;
+    
+    taskBoardData.lists.forEach(list => {
+      totalTasks += list.tasks.length;
+      completedTasks += list.tasks.filter(task => task.completed).length;
+    });
+    
+    document.getElementById('total-tasks').textContent = totalTasks;
+    document.getElementById('completed-tasks').textContent = completedTasks;
+    document.getElementById('pending-tasks').textContent = totalTasks - completedTasks;
+    document.getElementById('total-lists').textContent = taskBoardData.lists.length;
+  }
+  
+  // Change log functions (kept for internal tracking but not displayed)
+  function logChange(action, item, details) {
+    const now = new Date();
+    const change = {
+      timestamp: now.toISOString(),
+      action,
+      item,
+      details
+    };
+    
+    // Add to data
+    taskBoardData.changes.unshift(change);
+    if (taskBoardData.changes.length > 50) {
+      taskBoardData.changes.pop();
+    }
+    saveData();
+  }
+  
+  // Initialize the app when DOM is loaded
+  document.addEventListener('DOMContentLoaded', loadData);
+</script>
+</body>
+</html>
